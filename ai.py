@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 
 import requests
 
@@ -208,16 +209,36 @@ def _call(api_key: str, model: str, prompt: str, use_schema: bool) -> requests.R
     )
 
 
-def analyse(api_key: str, prompt: str, preferred_model: str | None = None) -> tuple[dict, str]:
+RETRY_STATUS = (500, 502, 503, 504)
+RETRY_WAITS = (3, 8)  # seconds to wait before the 2nd and 3rd try
+
+
+def _call_with_retry(api_key, model, prompt, use_schema, sleep=None):
+    """Google's servers are sometimes briefly busy (503). Try the same model up to 3 times."""
+    sleep = sleep or time.sleep
+    resp = None
+    for attempt in range(len(RETRY_WAITS) + 1):
+        try:
+            resp = _call(api_key, model, prompt, use_schema)
+        except requests.RequestException:
+            resp = None
+        if resp is not None and resp.status_code not in RETRY_STATUS:
+            return resp
+        if attempt < len(RETRY_WAITS):
+            sleep(RETRY_WAITS[attempt])
+    return resp
+
+
+def analyse(api_key: str, prompt: str, preferred_model: str | None = None, sleep=None) -> tuple[dict, str]:
     """Returns (findings, model_used)."""
     models = [m for m in [preferred_model] if m] + [m for m in C.GEMINI_MODELS if m != preferred_model]
+    busy = False
     last_error = "unknown error"
     for model in models:
         for use_schema in (True, False):
-            try:
-                resp = _call(api_key, model, prompt, use_schema)
-            except requests.RequestException as e:
-                last_error = f"network error ({type(e).__name__})"
+            resp = _call_with_retry(api_key, model, prompt, use_schema, sleep)
+            if resp is None:
+                last_error = "network error"
                 break
             if resp.status_code in (401, 403):
                 raise AIError("The Gemini key was rejected. Check GEMINI_API_KEY in the app settings.")
@@ -227,6 +248,10 @@ def analyse(api_key: str, prompt: str, preferred_model: str | None = None) -> tu
             if resp.status_code == 429:
                 last_error = f"free limit reached for {model}"
                 break  # try next model
+            if resp.status_code in RETRY_STATUS:
+                busy = True
+                last_error = f"Gemini error {resp.status_code}"
+                break  # still busy after retries: try next model
             if resp.status_code == 400 and use_schema:
                 continue  # retry the same model without the strict schema
             if not resp.ok:
@@ -242,4 +267,7 @@ def analyse(api_key: str, prompt: str, preferred_model: str | None = None) -> tu
                 if use_schema:
                     continue
                 break
+    if busy:
+        raise AIError("Google's AI is busy right now. The web search results are saved, so running it "
+                      "again uses no extra searches. Click Run assessment again in a minute.")
     raise AIError(f"Gemini could not complete the analysis: {last_error}. Try again in a minute.")

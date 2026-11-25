@@ -41,10 +41,11 @@ DEMO = not (GEMINI_KEY and TAVILY_KEY)
 
 
 @st.cache_resource
-def get_store():
-    if SHEET_URL and SHEET_TOKEN:
-        return SheetStore(SHEET_URL, SHEET_TOKEN)
-    if DEMO:
+def get_store(sheet_url: str, sheet_token: str, demo_mode: bool):
+    """Cached per settings, so changing the secrets switches storage without a reboot."""
+    if sheet_url and sheet_token:
+        return SheetStore(sheet_url, sheet_token)
+    if demo_mode:
         path = os.path.join(HERE, "data", "demo_store.json")
         fresh = not os.path.exists(path)
         store = LocalStore(path)
@@ -54,7 +55,7 @@ def get_store():
     return LocalStore(os.path.join(HERE, "data", "store.json"))
 
 
-STORE = get_store()
+STORE = get_store(SHEET_URL, SHEET_TOKEN, DEMO)
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -320,10 +321,18 @@ def page_assess():
     with st.status(f"Assessing {company}", expanded=True) as status:
         def on_step(kind, text):
             st.write(("Searching: " if kind == "search" else "") + text)
+        pending = st.session_state.setdefault("pending_sources", {})
+        key = rules.company_key(company)
         try:
-            a = run_assessment(inp, STORE, GEMINI_KEY, TAVILY_KEY, GEMINI_MODEL or None, on_step)
+            a = run_assessment(inp, STORE, GEMINI_KEY, TAVILY_KEY, GEMINI_MODEL or None, on_step,
+                               cached_sources=pending.get(key))
+            pending.pop(key, None)
             status.update(label=f"{company} assessed", state="complete", expanded=False)
-        except (SearchError, AIError, SheetError) as e:
+        except AIError as e:
+            if getattr(e, "sources", None):
+                pending[key] = e.sources
+            problem = str(e)
+        except (SearchError, SheetError) as e:
             problem = str(e)
         except Exception as e:  # anything unexpected: show it plainly instead of a traceback
             problem = (f"Something unexpected went wrong ({type(e).__name__}: {e}). Try again; if it keeps "
@@ -470,6 +479,9 @@ def page_panel():
                            .to_csv(index=False), "reviews.csv", icon=":material/download:")
     st.caption(f"Storage: {'Google Sheet' if STORE.kind == 'sheet' else 'local file on the server'}. "
                f"Mode: {'sample data' if DEMO else 'live'}.")
+    if STORE.kind != "sheet" and not DEMO:
+        st.warning("Data is being kept on the server only and will be lost when the app restarts. Add "
+                   "SHEETS_WEBAPP_URL and SHEETS_TOKEN in the app's secrets to save to the Google Sheet.")
 
 
 def page_method():

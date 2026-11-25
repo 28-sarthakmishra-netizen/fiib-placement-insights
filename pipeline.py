@@ -132,7 +132,7 @@ def build_record(inp: dict, sources: list[dict], findings: dict, reviews: list[d
 
 
 def run_assessment(inp: dict, store, gemini_key: str, tavily_key: str,
-                   gemini_model: str | None = None, on_step=None) -> dict:
+                   gemini_model: str | None = None, on_step=None, cached_sources=None) -> dict:
     step = on_step or (lambda *_: None)
     key = rules.company_key(inp["company"])
 
@@ -140,7 +140,10 @@ def run_assessment(inp: dict, store, gemini_key: str, tavily_key: str,
     assessments = store.list("assessments")
     prev = latest_for(assessments, key)
     fresh_cutoff = datetime.now(timezone.utc) - timedelta(days=C.SEARCH_CACHE_DAYS)
-    if prev and not inp.get("fresh_search") and parse_iso(prev["created_at"]) >= fresh_cutoff \
+    if cached_sources is not None and not inp.get("fresh_search"):
+        step("search", "Using the search results from your last try")
+        sources, warnings = cached_sources, []
+    elif prev and not inp.get("fresh_search") and parse_iso(prev["created_at"]) >= fresh_cutoff \
             and prev.get("sources") and not prev.get("demo"):
         step("search", "Using sources saved on " + prev["created_at"][:10])
         sources, warnings = prev["sources"], ["Reused saved search results (saves free credits)."]
@@ -156,7 +159,11 @@ def run_assessment(inp: dict, store, gemini_key: str, tavily_key: str,
     step("ai", f"Reading {len(sources)} sources and {len(reviews)} FIIB reviews")
     prompt = ai.build_prompt(inp["company"], inp["role"], float(inp["ctc_lpa"]),
                              inp.get("location"), int(inp.get("bond_months") or 0), sources, reviews)
-    findings, model = ai.analyse(gemini_key, prompt, gemini_model)
+    try:
+        findings, model = ai.analyse(gemini_key, prompt, gemini_model)
+    except ai.AIError as e:
+        e.sources = sources  # so a retry doesn't spend searches again
+        raise
 
     # 4. Score, count and save.
     step("score", "Counting sources and scoring")

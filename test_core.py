@@ -291,3 +291,31 @@ def test_search_retries_once(monkeypatch):
     monkeypatch.setattr(search.requests, "post", flaky)
     sources, warnings = search.run_searches("t", "Acme", "Analyst")
     assert len(sources) == 5 and warnings == []
+
+
+def test_gemini_busy_is_retried_then_succeeds(monkeypatch):
+    calls = []
+    monkeypatch.setattr(ai.time, "sleep", lambda s: None)
+    monkeypatch.setattr(ai.requests, "post", fake_post_factory(calls, gemini_status=[503, 503]))
+    findings, model = ai.analyse("g", "prompt")
+    assert model == ai.C.GEMINI_MODELS[0] and len(calls) == 3
+
+
+def test_busy_gemini_keeps_sources_for_retry(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(ai.time, "sleep", lambda s: None)
+    tavily_ok = fake_post_factory(calls)
+
+    def busy_gemini(url, *a, **k):  # search works, Gemini is always busy
+        return tavily_ok(url, *a, **k) if "tavily" in url else FakeResp(503, {})
+    monkeypatch.setattr(search.requests, "post", busy_gemini)
+    store = storage.LocalStore(str(tmp_path / "s.json"))
+    inp = {"company": "Acme", "role": "Analyst", "ctc_lpa": 12, "bond_months": 0}
+    with pytest.raises(ai.AIError, match="busy") as err:
+        pipeline.run_assessment(inp, store, "g", "t")
+    saved = err.value.sources
+    assert len(saved) == 10
+    calls.clear()
+    monkeypatch.setattr(ai.requests, "post", fake_post_factory(calls))
+    rec = pipeline.run_assessment(inp, store, "g", "t", cached_sources=saved)
+    assert not [c for c in calls if "tavily" in c[0]] and rec["sources"] == saved
