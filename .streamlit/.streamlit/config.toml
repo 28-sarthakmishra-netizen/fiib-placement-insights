@@ -1,0 +1,20 @@
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#3340A0"
+backgroundColor = "#F3F5FA"
+secondaryBackgroundColor = "#E7EBF4"
+textColor = "#171C3A"
+linkColor = "#3340A0"
+borderColor = "#D3D9E8"
+showWidgetBorder = true
+baseRadius = "0.55rem"
+font = "Instrument Sans, system-ui, sans-serif"
+headingFont = "Bricolage Grotesque, system-ui, sans-serif"
+headingFontWeights = [700, 650, 600]
+chartCategoricalColors = ["#3340A0", "#0D8FA3", "#7B3FC4", "#1D9A5B", "#D98B06", "#CF3646"]
