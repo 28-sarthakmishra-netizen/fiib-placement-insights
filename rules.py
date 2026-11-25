@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from urllib.parse import urlparse
 
-from . import config as C
+import config as C
 
 
 # ---------------------------------------------------------------- helpers

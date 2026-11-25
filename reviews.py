@@ -6,7 +6,7 @@ import hashlib
 import re
 from datetime import datetime, timedelta, timezone
 
-from . import config as C
+import config as C
 
 RATING_FIELDS = {
     "rating_overall": "Overall",

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from .pipeline import build_record
-from .rules import company_key
+from pipeline import build_record
+from rules import company_key
 
 
 def _src(platform, title, snippet, found_by="reviews", published=""):

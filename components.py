@@ -4,8 +4,8 @@ from __future__ import annotations
 import html
 from datetime import datetime
 
-from core import config as C
-from core.reviews import AI_MATCH, FLAG_TEXT, RATING_FIELDS, credibility
+import config as C
+from reviews import AI_MATCH, FLAG_TEXT, RATING_FIELDS, credibility
 
 TIER_COLOR = {1: "var(--tier1)", 2: "var(--tier2)", 3: "var(--tier3)"}
 VERDICT_CLASS = {"Recommend": "go", "Go with caution": "caution", "Avoid": "avoid"}
@@ -14,6 +14,7 @@ PLATFORM_CLASS = {"Reddit": "p-reddit", "AmbitionBox": "p-ambition", "Glassdoor"
 
 CSS = """
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap");
 :root{
   --ink:#171C3A; --ink-2:#4A5172; --ink-3:#7A81A0; --paper:#F3F5FA; --card:#FFFFFF; --line:#DCE1EE;
   --primary:#3340A0; --tier1:#7B3FC4; --tier2:#0D8FA3; --tier3:#64708C;
@@ -291,7 +292,7 @@ def score_bars(a: dict) -> str:
 def chip_label(s: dict) -> str:
     """Review sites show their name; news and other sites show the outlet, e.g. livemint.com."""
     if s.get("platform") in ("News", "Web"):
-        from core.rules import domain_of
+        from rules import domain_of
         return domain_of(s.get("url", "")) or s["platform"]
     return s["platform"]
 

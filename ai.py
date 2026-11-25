@@ -6,7 +6,7 @@ import re
 
 import requests
 
-from . import config as C
+import config as C
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 

@@ -6,11 +6,11 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from core import ai, pipeline, rules, search, storage  # noqa: E402
-from core.reviews import credibility, hash_email, heuristic_flags, valid_fiib_email  # noqa: E402
-from ui import components as ui  # noqa: E402
+import ai, pipeline, rules, search, storage  # noqa: E402
+from reviews import credibility, hash_email, heuristic_flags, valid_fiib_email  # noqa: E402
+import components as ui  # noqa: E402
 
 
 # ------------------------------------------------------------------ tiers and scores

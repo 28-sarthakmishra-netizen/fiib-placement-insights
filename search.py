@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import requests
 
-from . import config as C
-from .rules import platform_for
+import config as C
+from rules import platform_for
 
 TAVILY_URL = "https://api.tavily.com/search"
 SNIPPET_CHARS = 500

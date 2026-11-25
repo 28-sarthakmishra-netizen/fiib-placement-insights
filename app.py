@@ -6,17 +6,19 @@ import os
 import pandas as pd
 import streamlit as st
 
-from core import config as C, demo, rules
-from core.ai import AIError
-from core.pipeline import run_assessment
-from core.reviews import (AI_MATCH, FLAG_TEXT, RATING_FIELDS, credibility, hash_email,
+import config as C
+import demo
+import rules
+from ai import AIError
+from pipeline import run_assessment
+from reviews import (AI_MATCH, FLAG_TEXT, RATING_FIELDS, credibility, hash_email,
                           heuristic_flags, now_iso, valid_fiib_email)
-from core.search import SearchError
-from core.storage import LocalStore, SheetError, SheetStore, new_id
-from ui import components as ui
+from search import SearchError
+from storage import LocalStore, SheetError, SheetStore, new_id
+import components as ui
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-st.set_page_config(page_title="FIIB Placement Insights", page_icon=os.path.join(HERE, "static", "icon.png"),
+st.set_page_config(page_title="FIIB Placement Insights", page_icon=os.path.join(HERE, "icon.png"),
                    layout="wide")
 
 
@@ -505,7 +507,7 @@ def page_method():
 
 # ------------------------------------------------------------------ navigation
 st.html(ui.CSS)
-st.logo(os.path.join(HERE, "static", "logo.svg"), size="large")
+st.logo(os.path.join(HERE, "logo.svg"), size="large")
 PAGES = {
     "companies": st.Page(page_companies, title="Companies", icon=":material/apartment:", url_path="companies",
                          default=True),

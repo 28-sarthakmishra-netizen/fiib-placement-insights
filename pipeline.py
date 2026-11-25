@@ -3,10 +3,12 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from . import ai, config as C, rules
-from .reviews import now_iso, parse_iso
-from .search import run_searches
-from .storage import new_id
+import ai
+import config as C
+import rules
+from reviews import now_iso, parse_iso
+from search import run_searches
+from storage import new_id
 
 
 def latest_for(assessments: list[dict], key: str) -> dict | None:
