@@ -1,0 +1,49 @@
+[server]
+enableStaticServing = true
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#3340A0"
+backgroundColor = "#F3F5FA"
+secondaryBackgroundColor = "#E7EBF4"
+textColor = "#171C3A"
+linkColor = "#3340A0"
+borderColor = "#D3D9E8"
+showWidgetBorder = true
+baseRadius = "0.55rem"
+font = "Instrument Sans, system-ui, sans-serif"
+headingFont = "Bricolage Grotesque, system-ui, sans-serif"
+headingFontWeights = [700, 650, 600]
+chartCategoricalColors = ["#3340A0", "#0D8FA3", "#7B3FC4", "#1D9A5B", "#D98B06", "#CF3646"]
+
+[[theme.fontFaces]]
+family = "Instrument Sans"
+url = "app/static/instrument-sans-latin-wght-normal.woff2"
+weight = "400 700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Instrument Sans"
+url = "app/static/instrument-sans-latin-ext-wght-normal.woff2"
+weight = "400 700"
+style = "normal"
+unicodeRange = "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+
+[[theme.fontFaces]]
+family = "Bricolage Grotesque"
+url = "app/static/bricolage-grotesque-latin-wght-normal.woff2"
+weight = "200 800"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Bricolage Grotesque"
+url = "app/static/bricolage-grotesque-latin-ext-wght-normal.woff2"
+weight = "200 800"
+style = "normal"
+unicodeRange = "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
